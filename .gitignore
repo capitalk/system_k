@@ -11,3 +11,15 @@
 *.lai
 *.la
 *.a
+
+# Configuration files that may contain passwords
+*.cfg
+
+# Ignore log files
+*.log
+
+# Files created by Quickfix
+*.body
+*.header
+*.seqnums
+*.sessions
