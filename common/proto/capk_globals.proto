@@ -1,0 +1,59 @@
+//
+// System K - A framework for building trading applications and analysis
+// Copyright (C) 2013 Timir Karia <tkaria@capitalkpartners.com>
+//
+// This file is part of System K.
+//
+// System K is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as
+// published by the Free Software Foundation, either version 3 of the
+// License, or (at your option) any later version.
+//
+// System K is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with System K.  If not, see <http://www.gnu.org/licenses/>.
+//
+
+package capkproto;
+
+enum side_t {
+	BID = 1;
+	ASK = 2;
+}
+
+enum ord_type_t {
+	MKT = 1; //	=	Market [Market]	
+	LIM = 2; //	=	Limit [Limit]	
+			 //3	=	Stop [Stop]	
+			 //4	=	Stop limit [StopLimit]	
+			 //5	=	Market on close [MarketOnClose]	
+			 //6	=	With or without [WithOrWithout]	
+			 //7	=	Limit or better [LimitOrBetter]	
+			 //8	=	Limit with or without [LimitWithOrWithout]	
+			 //9	=	On basis [OnBasis]	
+			 //A	=	On close [OnClose]	
+			 //B	=	Limit on close [LimitOnClose]	
+			 //C	=	Forex - Market [ForexMarket]	
+			 //D	=	Previously quoted [PreviouslyQuoted]	
+			 //E	=	Previously indicated [PreviouslyIndicated]	
+			 //F	=	Forex - Limit [ForexLimit]	
+			 //G	=	Forex - Swap [ForexSwap]	
+			 //H	=	Forex - Previously Quoted [ForexPreviouslyQuoted]	
+			 //I	=	Funari (Limit Day Order with unexecuted portion handled as Market On Close. e.g. Japan) [Funari]	
+			 //P	=	Pegged [Pegged]
+}
+
+enum time_in_force_t {
+	GFD = 0; //=	Day [Day]	
+	GTC = 1; //=	Good Till Cancel (GTC) [GoodTillCancel]	
+	OPG = 2; //=	At the Opening (OPG) [AtTheOpening]	
+	IOC = 3; //=	Immediate or Cancel (IOC) [ImmediateOrCancel]	
+	FOK = 4; //=	Fill or Kill (FOK) [FillOrKill]	
+	GTX = 5; //=	Good Till Crossing (GTX) [GoodTillCrossing]	
+	GTD = 6; //=	Good Till Date [GoodTillDate]
+}
+

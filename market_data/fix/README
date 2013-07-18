@@ -1,0 +1,8 @@
+Sample command line using screen:
+ screen -d -m -S MIC1.prod ./md_fix --c ../cfg/MIC1.prod.cfg --s ../cfg/symbols.cfg --nolog
+
+Sample debug command line:
+ screen -d -m -S MIC1.dev ./md_fix --c ../cfg/MIC1.dev.cfg --s ../cfg/symbols.cfg --d
+
+Sample command line for no logging:
+ screen -d -m -S MIC1.prod ./md_fix --c ../cfg/MIC1.prod.cfg --s ../cfg/symbols.cfg --nolog

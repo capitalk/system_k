@@ -23,3 +23,15 @@
 *.header
 *.seqnums
 *.sessions
+
+# Compiled Python
+*.pyc
+
+# Generated autotools files
+*.Plo
+*~
+
+# Generated protobuf files
+*.pb.h
+*.pb.cc
+*_pb.py

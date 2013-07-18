@@ -1,0 +1,88 @@
+What is it? 
+System K (SK) is an open source toolkit for building trading applications and doing
+analysis on financial data. It includes the following components for now:
+- An orderbook
+- FIX market data connectivity
+- Broadcast of market data
+- A simple configuration server
+
+Only a small fraction of SK has been released. Remaining pieces will be released
+over time as they are cleaned up for public consumption. These include:
+- Aggregated orderbook
+- Order Entry
+- Trade serialization 
+- ITCH market data
+- Interactive Brokers market data and order entry
+
+What components are used:
+System K uses only open source software and is licensed under the Affero GPL 3
+license. The system uses the following components:
+- Boost libraries 
+  (avoid v1.50 if possible due to do bug in configuration file reading) 
+  see http://www.boost.org
+
+- Quickfix(QF) - www.quickfixengine.com. QuickFix/C++ currently. It works and is
+  tested but it is sub-optimal. Eventually SK will move to fix8 if 
+  the performance is better. See http://www.fix8.org. SK pretty dependent
+  on QF now but will get to the point where people can move easily between
+  whatever FIX engine they like. 
+
+	Resources:
+	http://www.quickfixengine.com - main site
+	http://sourceforge.net/mail/?group_id=37535 - this is the quickfix mailing list 
+	http://www.quickfixengine.org/forum/ - this is the discussion forum.
+
+- Google Protocol Buffers - http://code.google.com/p/protobuf/ 
+  Used for data serialization/deserialization. Very small, fast and efficient 
+  encoding and decoding of data and the primary mode of moving 
+  data around our system on the network. 
+
+	Resources:
+	https://developers.google.com/protocol-buffers/docs/overview - A good
+  overview of what they are and how to use them. 
+
+- Google Sparse and Dense Hashtables - http://code.google.com/p/sparsehash/ 
+  SK uses this as a cache in several places as it's small and super fast. 
+
+- Boost - http://www.boost.org - C++ libraries - terrific set of libraries
+  written by the guys who wrote a big chunk of the C++ standard library.
+  In general SK is uses C++ as a better C so you wont' see many of the fancy
+  language extensions in new C++ specs in the code.
+
+- Pantheios - http://www.pantheios.org - C++ logging library
+  System K can be built with Pantheios logging enabled by specifying -DLOG to 
+  CPP_FLAGS when running configure. Note also that you'll need to change 
+  Makefile.am to specify the correct version of gcc library for now. 
+  Note that Pantheios has a dependency on STLSoft. 
+
+- Google Test - https://code.google.com/p/googletest/downloads/list 
+  Unit testing library for C++ that we use. Easy to setup and use. You only
+  need this if you want to run the tests. 
+
+- ZeroMQ - http://zeromq.org - fantastic messaging library. All messages
+  inside and outside the system are sent over 0MQ sockets.
+  
+
+- Other package dependencies
+  uuid
+  uuid-devel
+
+Tests:
+Tests are not automatically built right now. They will be in next release. 
+
+Getting started:
+Since this is a first release the best way to get started is to try to get the
+binaries built. Doing this should be fairly straightfoward if the
+aforementioned software is built and installed correctly. System K is intended
+for *NIX systems. 
+
+Architecture overview:
+See the System_K_Architecture.pdf in this directory. 
+
+Building:
+./configure in the top level directory (system_k) is the best way to start
+make 
+make install (optionally)
+
+Bugs:
+Please report bugs/issues to https://github.com/capitalk/system_k/issues
