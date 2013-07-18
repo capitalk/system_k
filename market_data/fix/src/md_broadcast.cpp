@@ -37,6 +37,7 @@ namespace capk {
  * @return 0 on success
  */
 int InitializeZMQPublisher(void** context, void** socket) {
+  
   int zero = 0;
   /** Initialize the global context */
   *context = zmq_init(1);

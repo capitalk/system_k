@@ -109,7 +109,7 @@ void sighandler(int sig) {
 /** 
  * Print the contents of the configuration structure
  */
-void PrintConfig(ApplicationConfig* app_cfg) {
+void PrintConfig(const ApplicationConfig* const app_cfg) {
   if (!app_cfg) {
     std::cerr << "Application config is NULL - can't print" << std::endl; 
   }
@@ -365,7 +365,7 @@ int ReadLocalVenueConfig(const std::string & venue_config_file,
  * @return 0 on success
  */
 int ReadRemoteConfig(ApplicationConfig* application_config) {
-  pan::log_DEBUG("Trying to read remote configuration...");
+  std::cout << "Trying to read remote configuration...";
 
   // protobuf for configuration
   capkproto::configuration all_venue_config;
@@ -572,7 +572,7 @@ main(int argc, char** argv )
       logging_init(createTimestampedLogFilename(PANTHEIOS_FE_PROCESS_IDENTITY).c_str());
 #endif
 
-  if (InitializeZMQPublisher(&g_zmq_context, &g_pub_socket) != 0) {
+  if (capk::InitializeZMQPublisher(&g_zmq_context, &g_pub_socket) != 0) {
 #ifdef LOG
     pan::log_CRITICAL("Can't init ZMQ - exiting");
 #endif
@@ -628,7 +628,7 @@ main(int argc, char** argv )
       }
     }
 
-    PrintConfig(config);
+    PrintConfig(&config);
 
     // Create the FIX application instance
     Application application(config);
@@ -673,7 +673,7 @@ main(int argc, char** argv )
       return (-1);
     }
 
-    // ZMQ initialization
+    // Set ZMQ parameters in Application 
     if (config.is_publishing) {
       zmq_bind(g_pub_socket, config.publishing_addr.c_str());
       application.setZMQContext(g_zmq_context);
