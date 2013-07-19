@@ -185,7 +185,7 @@ int ReadFIXConfig(ApplicationConfig* application_config,
   }
   int err = 0;
 
-  std::cout << "Reading FIX configuration...";
+  std::cerr << "Reading FIX configuration...";
 
   // MIC code
   application_config->mic_string =
@@ -298,14 +298,14 @@ int ReadFIXConfig(ApplicationConfig* application_config,
       dict.getBool("PublishPrices");
   application_config->is_publishing = is_publishing;
 
-  std::cout << "done" << std::endl;
+  std::cerr << "done" << std::endl;
 
   return (err);
 }
 
 int ReadLocalVenueConfig(const std::string & venue_config_file, 
                          ApplicationConfig* application_config) {
-  std::cout << "Reading local venue configuration...";
+  std::cerr << "Reading local venue configuration...";
   // protobuf for configuration
   capkproto::configuration all_venue_config;
   capk::readVenueConfigFile(venue_config_file, &all_venue_config);
@@ -313,10 +313,13 @@ int ReadLocalVenueConfig(const std::string & venue_config_file,
       capk::get_venue_config(&all_venue_config,
                              application_config->mic_string.c_str());
 
+  // This will trigger if you use a MIC string that is not in the config
+  // since we'll look for a missing config and it's id will be 0.
   if (my_config.venue_id() <= 0) {
 #ifdef LOG
     pan::log_CRITICAL("venue_id is not set or set to 0");
 #endif
+    std::cerr << "A" << my_config.venue_id();
     return (-1);
   } else {
     application_config->venue_id = my_config.venue_id();
@@ -324,6 +327,7 @@ int ReadLocalVenueConfig(const std::string & venue_config_file,
 #ifdef LOG
       pan::log_CRITICAL("venue_id in config file is 0");
 #endif
+    std::cerr << "B";
       return (-1);
    }
 #ifdef LOG
@@ -344,13 +348,15 @@ int ReadLocalVenueConfig(const std::string & venue_config_file,
 #ifdef LOG
       pan::log_WARNING("Publishing is set but no address configured");
 #endif
+    std::cerr << "C";
+      return (-1);
     }
   } else {
 #ifdef LOG
     pan::log_DEBUG("Not publishing");
 #endif
   }
-  std::cout << "done" << std::endl;
+  std::cerr << "done" << std::endl;
   return (0);
 }
 
@@ -365,7 +371,7 @@ int ReadLocalVenueConfig(const std::string & venue_config_file,
  * @return 0 on success
  */
 int ReadRemoteConfig(ApplicationConfig* application_config) {
-  std::cout << "Trying to read remote configuration...";
+  std::cerr << "Trying to read remote configuration...";
 
   // protobuf for configuration
   capkproto::configuration all_venue_config;
@@ -424,7 +430,7 @@ int ReadRemoteConfig(ApplicationConfig* application_config) {
 #endif
   }
 
-  std::cout << "done" << std::endl;
+  std::cerr << "done" << std::endl;
 
   return (0);
 }
@@ -703,15 +709,13 @@ main(int argc, char** argv )
     g_pinitiator->start();
 
     char x;
-    std::cout << "Press q to quit" << std::endl;
+    std::cout << "Type 'q' to disconnect and exit" << std::endl;
     while (std::cin >> x) {
       if (x == 'q') {
         break;
       }
     }
-#ifdef LOG
-    pan::log_DEBUG("Stopping initiator");
-#endif
+    std::cout << "Cleaning up" << std::endl;
     g_pinitiator->stop();
     return 0;
   } catch(FIX::Exception& e) {

@@ -31,8 +31,6 @@ namespace capk
           for (int i = 0; i< config->configs_size(); i++) {
               const capkproto::venue_configuration vc  = config->configs(i);
               if (vc.mic_name() == mic_name) {
-                  //fprintf(stderr, "venue_configuration: %s", vc.DebugString().c_str());
-                  //fprintf(stderr, "venue_id: %d", vc.venue_id());
                   return vc;
               }
           }
@@ -122,7 +120,7 @@ namespace capk
         single_venue_config->set_use_synthetic_cancel_replace(boost::lexical_cast<bool>(it->second.data()));
       }
     }
-    std::cout << all_venue_config->DebugString() << std::endl; 
+    //std::cout << all_venue_config->DebugString() << std::endl; 
   }
 
 int 

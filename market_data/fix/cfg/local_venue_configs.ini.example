@@ -7,7 +7,6 @@ aggregated_bbo_book_id=31415
 
 # Venue names listed below MUST match headings below or a parse error
 # will occur. Do not use special char in the values or section names.
-
 [VENUES]
 venue1=MIC1
 venue2=MIC1dev

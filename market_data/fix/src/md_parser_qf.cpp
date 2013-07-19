@@ -95,41 +95,34 @@ void Application::toAdmin(FIX::Message& message,
   message.getHeader().getField(msgType);
   if (msgType.getValue() == FIX::MsgType_TestRequest) { 
 #ifdef LOG
-    if (_config.print_debug) {
       pan::log_DEBUG("Sending TestRequest (35=1)");
-    }
 #endif
   }
   if (msgType.getValue() == FIX::MsgType_ResendRequest) {  
 #ifdef LOG
-    if (_config.print_debug) {
       pan::log_DEBUG("Sending ResendRequest (35=2)");
-    }
 #endif
   }
   if (msgType.getValue() == FIX::MsgType_Reject) {  
 #ifdef LOG
-    if (_config.print_debug) {
       pan::log_ERROR("Sending Reject (35=3)");
-    }
 #endif
   }
   if (msgType.getValue() == FIX::MsgType_Heartbeat) {  
 #ifdef LOG
-    if (_config.print_debug) {
       pan::log_DEBUG("Sending Heartbeat (35=0)");
-    }
 #endif
   }
   if (msgType.getValue() == FIX::MsgType_SequenceReset) {  
 #ifdef LOG
-    if (_config.print_debug) {
       pan::log_WARNING("Sending SequenceReset (35=4)");
-    }
 #endif
   }
   if (msgType.getValue() == FIX::MsgType_Logon) {  
     FIX::Header& header = message.getHeader();
+#ifdef LOG
+      pan::log_WARNING("Sending Login (35=A)");
+#endif
 
     //
     // Some exchanges want both a password and username,
@@ -159,9 +152,7 @@ void Application::toAdmin(FIX::Message& message,
   }
 
 #ifdef LOG
-  if (_config.print_debug) {
     pan::log_DEBUG("toAdmin sent: ", message.toString());
-  }
 #endif
 }
 
@@ -192,8 +183,11 @@ void Application::run() {
     addBook(symbol, pBook);
     it++;
   }
-  std::cerr << "Total books created: "
-            << _symbolToBook.size() << "\n";
+
+  if (_config.print_debug) {
+  std::cout << "Total books created: "
+            << _symbolToBook.size() << std::endl;
+  }
     
   // Some venues require each market data subscription to be sent
   // in a different message - i.e. when we send 35=V we are ONLY
@@ -237,9 +231,7 @@ capk::order_book* Application::getBook(const std::string& symbol) {
 
 void Application::deleteBooks() {
 #ifdef LOG
-  if (_config.print_debug)  {
     pan::log_DEBUG("Deleting books");
-  }
 #endif
   symbolToBookIterator books = _symbolToBook.begin();
   while (books != _symbolToBook.end()) {
@@ -253,9 +245,7 @@ void Application::deleteBooks() {
 
 void Application::sendTestRequest() {
 #ifdef LOG
-  if (_config.print_debug) {
     pan::log_DEBUG("Application::sendTestRequest()");
-  }
 #endif
 
   FIX::Message testRequestMessage;
@@ -300,9 +290,7 @@ void Application::sendTestRequest() {
 void Application::sendSingleMarketDataRequest(
   const std::string& requestSymbol) {
 #ifdef LOG
-  if (_config.print_debug) {
     pan::log_DEBUG("sendSingleMarketDataRequest(...)");
-  }
 #endif
 
   FIX::Message md;
@@ -345,9 +333,7 @@ void Application::sendSingleMarketDataRequest(
 void Application::sendMarketDataRequest(
   const std::vector<std::string>& symbols) {
 #ifdef LOG
-  if (_config.print_debug) {
     pan::log_DEBUG("Application::sendMarketDataRequest(...)");
-  }
 #endif
   FIX::Message md;
   switch (_config.version) {
@@ -393,6 +379,9 @@ void Application::onLogon(const FIX::SessionID& sessionID) {
 #ifdef LOG
   pan::log_DEBUG("onLogon - session ID:", sessionID.toString().c_str());
 #endif
+  if (_config.print_debug) {
+    std::cout << "Logged on" << std::endl;
+  }
   _sessionID = sessionID;
   _loginCount++;
   run();
@@ -417,9 +406,7 @@ throw(FIX::FieldNotFound,
       FIX::IncorrectTagValue,
       FIX::RejectLogon ) {
 #ifdef LOG
-  if (_config.print_debug)  {
     pan::log_DEBUG("fromAdmin: ", message.toString().c_str());
-  }
 #endif
   crack(message, sessionID);
 }
@@ -431,19 +418,16 @@ throw(FIX::FieldNotFound,
       FIX::IncorrectTagValue,
       FIX::UnsupportedMessageType) {
 #ifdef LOG
-  if (_config.print_debug) {
     pan::log_DEBUG("fromApp: ", message.toString().c_str());
-  }
 #endif
 
   _appMsgCount++;
-  if (_appMsgCount % 10000 == 0) {
+  if (_appMsgCount % 1000 == 0) {
     std::cout << "Received "
               << _appMsgCount
               << " application messages"
               << std::endl;
   }
-
   crack(message, sessionID);
 }
 
@@ -451,9 +435,7 @@ void Application::toApp(FIX::Message& message,
                         const FIX::SessionID& sessionID)
 throw(FIX::DoNotSend) {
 #ifdef LOG
-  if (_config.print_debug) {
     pan::log_DEBUG("toApp: ", message.toString().c_str());
-  }
 #endif
 
   try {
@@ -526,10 +508,8 @@ template <typename T>
 void Application::full_refresh_template(const T& message,
                                         const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
     pan::log_DEBUG("Application::full_refresh_template()",
                    message.toString().c_str());
-  }
 #endif
   
 /*  std::ostream* pLog = NULL; */
@@ -649,14 +629,12 @@ void Application::full_refresh_template(const T& message,
       pBook->add(nid, nside, size, price, evtTime, sndTime);
 
 #ifdef LOG
-      if (_config.print_debug) {
         pan::log_DEBUG("Adding ID=",
                        id.c_str(),
                        " price=",
                        pan::real(price),
                        " size=",
                        pan::integer(size));
-      }
 #endif
     }
 
@@ -809,24 +787,20 @@ void Application::incremental_update_template(const T& message,
 
         uint32_t nid = hashlittle(id.c_str(), id.size(), 0);
 #ifdef LOG
-        if (_config.print_debug) {
           pan::log_DEBUG("Original MDEntryID: ",
                          id.c_str(),
                          " => HASH ID: ",
                          pan::integer(nid));
-        }
 #endif
         int action = mdUpdateAction.getValue();
         if (action == FIX::MDUpdateAction_NEW) {
           price = mdEntryPx.getValue();
           if (_config.new_replaces) {
 #ifdef LOG
-            if (_config.print_debug) {
               pan::log_DEBUG("Deleting old: ",
                              pan::integer(nid),
                              " before adding new "
                              "(new_replaces enabled in conifg)");
-            }
 #endif
             int removeOk = pBook->remove(nid, evtTime, sndTime);
             if (removeOk == 0) {
@@ -835,19 +809,17 @@ void Application::incremental_update_template(const T& message,
                   << "not found - so just adding";
             }
 #ifdef LOG
-            if (_config.print_debug) {
-              if (removeOk == 0) {
-                pan::log_DEBUG("Order: ",
-                               pan::integer(nid),
-                               " not found - so just add");
-              }
-              pan::log_DEBUG("Adding: ",
+            if (removeOk == 0) {
+              pan::log_DEBUG("Order: ",
                              pan::integer(nid),
-                             ", ",
-                             pan::integer(size),
-                             "@",
-                             pan::real(price));
+                             " not found - so just add");
             }
+            pan::log_DEBUG("Adding: ",
+                           pan::integer(nid),
+                           ", ",
+                           pan::integer(size),
+                           "@",
+                           pan::real(price));
 #endif
         }
 
@@ -878,13 +850,10 @@ void Application::incremental_update_template(const T& message,
                       << "\n";
           }
 #ifdef LOG
-          if (_config.print_debug) {
-            pan::log_DEBUG("Add ",
-                           pan::integer(nside), ",",
-                           pan::integer(size), ",",
-                           pan::real(price), ",", "\n");
-            pBook->dbg();
-          }
+          pan::log_DEBUG("Add ",
+                         pan::integer(nside), ",",
+                         pan::integer(size), ",",
+                         pan::real(price), ",", "\n");
 #endif
         } else if (action == FIX::MDUpdateAction_CHANGE) {
           price = mdEntryPx.getValue();
@@ -899,15 +868,13 @@ void Application::incremental_update_template(const T& message,
             mdEntries.getField(mdEntryRefID);
             const std::string& refId = mdEntryRefID.getValue();
 #ifdef LOG
-            if (_config.print_debug) {
-              pan::log_WARNING("Using mdEntryRefID: ",
-                               mdEntryRefID.getString().c_str(),
-                               " AS mdEntryID: ",
-                               mdEntryID.getString().c_str());
+            pan::log_WARNING("Using mdEntryRefID: ",
+                             mdEntryRefID.getString().c_str(),
+                             " AS mdEntryID: ",
+                             mdEntryID.getString().c_str());
 
-              if (mdEntryRefID.getValue() != mdEntryID.getValue()) {
-                pan::log_WARNING("mdEntryRefID != mdEntryID");
-              }
+            if (mdEntryRefID.getValue() != mdEntryID.getValue()) {
+              pan::log_WARNING("mdEntryRefID != mdEntryID");
             }
 #endif
             uint32_t nrefId = hashlittle(refId.c_str(), refId.size(), 0);
@@ -915,24 +882,20 @@ void Application::incremental_update_template(const T& message,
             pBook->add(nid, nside, size, price, evtTime, sndTime);
           } else {
 #ifdef LOG
-            if (_config.print_debug) {
-              pan::log_DEBUG("Modify: ",
-                             pan::integer(nid),
-                             " to size ",
-                             pan::integer(size));
-            }
+            pan::log_DEBUG("Modify: ",
+                           pan::integer(nid),
+                           " to size ",
+                           pan::integer(size));
 #endif
             capk::porder pOrder = pBook->getOrder(nid);
             // If we found the order referenced by mdEntryRefID
             // update it with new information
             if (pOrder) {
 #ifdef LOG
-              if (_config.print_debug) {
-                pan::log_DEBUG("Modify ",
-                               pan::integer(nside), ",",
-                               pan::integer(size), ",",
-                               pan::real(price), ",", "\n");
-              }
+              pan::log_DEBUG("Modify ",
+                             pan::integer(nside), ",",
+                             pan::integer(size), ",",
+                             pan::real(price), ",", "\n");
 #endif
               int modifyOk = pBook->modify(nid, size, evtTime, sndTime);
 
@@ -964,10 +927,8 @@ void Application::incremental_update_template(const T& message,
           }
         } else if (action == FIX::MDUpdateAction_DELETE) {
 #ifdef LOG
-          if (_config.print_debug) {
-            pan::log_DEBUG("Deleting order id (hash): ",
-                           pan::integer(nid));
-          }
+          pan::log_DEBUG("Deleting order id (hash): ",
+                         pan::integer(nid));
 #endif
           capk::porder pOrder = pBook->getOrder(nid);
           if (pOrder) {
@@ -1055,11 +1016,9 @@ void Application::incremental_update_template(const T& message,
 FIX42::MarketDataRequest Application::sendSingleMarketDataRequest42(
   const std::string& requestSymbol) {
 #ifdef LOG
-  if (_config.print_debug) {
     pan::log_DEBUG("sendSingleMarketDataRequest42(",
                    requestSymbol.c_str(),
                    ")");
-  }
 #endif
 
   std::string reqID("CAPK-");
@@ -1107,9 +1066,7 @@ FIX42::MarketDataRequest Application::sendSingleMarketDataRequest42(
 FIX42::MarketDataRequest Application::sendMarketDataRequest42(
   const std::vector<std::string>& symbols) {
 #ifdef LOG
-  if (_config.print_debug) {
     pan::log_DEBUG("sendMarketDataRequest42(...)");
-  }
 #endif
 
   FIX::MDReqID mdReqID("CAPK");
@@ -1159,9 +1116,7 @@ FIX42::MarketDataRequest Application::sendMarketDataRequest42(
 void Application::onMessage(const FIX42::TradingSessionStatus& message,
                             const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("FIX42::TradingSessionStatus& message...)");
-  }
+  pan::log_DEBUG("FIX42::TradingSessionStatus& message...)");
 #endif
   trading_session_status_template<FIX42::TradingSessionStatus>(message,
       sessionID);
@@ -1170,19 +1125,15 @@ void Application::onMessage(const FIX42::TradingSessionStatus& message,
 void Application::onMessage(const FIX42::Logon& message,
                             const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("FIX42::Logon& message, ...)");
-  }
+  pan::log_DEBUG("FIX42::Logon& message, ...)");
 #endif
 }
 
 void Application::onMessage(const FIX42::MarketDataSnapshotFullRefresh& message,
                             const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("FIX42::MarketDataSnapshotFullRefresh& message, ...",
-                   "\n(", message.toString().c_str(), ")");
-  }
+  pan::log_DEBUG("FIX42::MarketDataSnapshotFullRefresh& message, ...",
+                 "\n(", message.toString().c_str(), ")");
 #endif
   this->full_refresh_template<FIX42::MarketDataSnapshotFullRefresh>(message,
       sessionID);
@@ -1192,10 +1143,8 @@ void Application::onMessage(const FIX42::MarketDataSnapshotFullRefresh& message,
 void Application::onMessage(const FIX42::MarketDataIncrementalRefresh& message,
   const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("FIX42::MarketDataIncrementalRefresh& message, ...)\n",
-                   message.toString().c_str());
-  }
+  pan::log_DEBUG("FIX42::MarketDataIncrementalRefresh& message, ...)\n",
+                 message.toString().c_str());
 #endif
   this->incremental_update_template<FIX42::MarketDataIncrementalRefresh>(
     message, sessionID);
@@ -1204,18 +1153,14 @@ void Application::onMessage(const FIX42::MarketDataIncrementalRefresh& message,
 void Application::onMessage(const FIX42::MarketDataRequestReject& message,
   const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("FIX42::MarketDataRequestReject& message, ...)\n",
-                   message.toString().c_str());
-  }
+  pan::log_DEBUG("FIX42::MarketDataRequestReject& message, ...)\n",
+                 message.toString().c_str());
 #endif
 }
 
 FIX42::TestRequest Application::sendTestRequest42() {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("Application::sendTestRequest42()");
-  }
+  pan::log_DEBUG("Application::sendTestRequest42()");
 #endif
   FIX42::TestRequest tr;
   FIX::TestReqID trid("TestRequest");
@@ -1233,9 +1178,7 @@ FIX42::TestRequest Application::sendTestRequest42() {
 FIX43::MarketDataRequest Application::sendMarketDataRequest43(
   const std::vector<std::string>& symbols) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("sendMarketDataRequest43(...)");
-  }
+  pan::log_DEBUG("sendMarketDataRequest43(...)");
 #endif
 
   FIX::MDReqID mdReqID("CAPK");
@@ -1284,11 +1227,9 @@ FIX43::MarketDataRequest Application::sendMarketDataRequest43(
 FIX43::MarketDataRequest Application::sendSingleMarketDataRequest43(
   const std::string& requestSymbol) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("sendSingleMarketDataRequest43(",
-                   requestSymbol.c_str(),
-                   ")");
-  }
+  pan::log_DEBUG("sendSingleMarketDataRequest43(",
+                 requestSymbol.c_str(),
+                 ")");
 #endif
 
   std::string reqID("CAPK-");
@@ -1335,9 +1276,7 @@ FIX43::MarketDataRequest Application::sendSingleMarketDataRequest43(
 void Application::onMessage(const FIX43::TradingSessionStatus& message,
                             const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("FIX43::TradingSessionStatus& message...)");
-  }
+  pan::log_DEBUG("FIX43::TradingSessionStatus& message...)");
 #endif
   trading_session_status_template<FIX43::TradingSessionStatus>(message,
       sessionID);
@@ -1347,7 +1286,7 @@ void Application::onMessage(const FIX43::Logon& message,
                             const FIX::SessionID& sessionID) {
   if (_config.print_debug) {
 #ifdef LOG
-    pan::log_DEBUG("FIX43::Logon& message, ...)");
+  pan::log_DEBUG("FIX43::Logon& message, ...)");
 #endif
   }
 }
@@ -1355,10 +1294,8 @@ void Application::onMessage(const FIX43::Logon& message,
 void Application::onMessage(const FIX43::MarketDataSnapshotFullRefresh& message,
                             const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("FIX43::MarketDataSnapshotFullRefresh& message, ...",
-                   "\n(", message.toString().c_str(), ")");
-  }
+  pan::log_DEBUG("FIX43::MarketDataSnapshotFullRefresh& message, ...",
+                 "\n(", message.toString().c_str(), ")");
 #endif
   this->full_refresh_template<FIX43::MarketDataSnapshotFullRefresh>(message,
       sessionID);
@@ -1367,10 +1304,8 @@ void Application::onMessage(const FIX43::MarketDataSnapshotFullRefresh& message,
 void Application::onMessage(const FIX43::MarketDataIncrementalRefresh& message,
   const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("FIX43::MarketDataIncrementalRefresh& message, ...)\n",
-                   message.toString().c_str());
-  }
+  pan::log_DEBUG("FIX43::MarketDataIncrementalRefresh& message, ...)\n",
+                 message.toString().c_str());
 #endif
   this->incremental_update_template<FIX43::MarketDataIncrementalRefresh>(
     message, sessionID);
@@ -1379,19 +1314,15 @@ void Application::onMessage(const FIX43::MarketDataIncrementalRefresh& message,
 void Application::onMessage(const FIX43::MarketDataRequestReject& message,
   const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("FIX43::MarketDataRequestReject& message, ...)\n",
-                   message.toString().c_str());
-  }
+  pan::log_DEBUG("FIX43::MarketDataRequestReject& message, ...)\n",
+                 message.toString().c_str());
 #endif
 }
 
 
 FIX43::TestRequest Application::sendTestRequest43() {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("Application::sendTestRequest43()");
-  }
+  pan::log_DEBUG("Application::sendTestRequest43()");
 #endif
   FIX43::TestRequest tr;
   FIX::TestReqID trid("TestRequest");
@@ -1409,9 +1340,7 @@ FIX43::TestRequest Application::sendTestRequest43() {
 FIX44::MarketDataRequest Application::sendMarketDataRequest44(
   const std::vector<std::string>& symbols) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("sendMarketDataRequest44(...)");
-  }
+  pan::log_DEBUG("sendMarketDataRequest44(...)");
 #endif
 
   FIX::MDReqID mdReqID("CAPK");
@@ -1460,11 +1389,9 @@ FIX44::MarketDataRequest Application::sendMarketDataRequest44(
 FIX44::MarketDataRequest Application::sendSingleMarketDataRequest44(
   const std::string& requestSymbol) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("sendSingleMarketDataRequest44(",
-                   requestSymbol.c_str(),
-                   ")");
-  }
+  pan::log_DEBUG("sendSingleMarketDataRequest44(",
+                 requestSymbol.c_str(),
+                 ")");
 #endif
 
   std::string reqID("CAPK-");
@@ -1511,9 +1438,7 @@ FIX44::MarketDataRequest Application::sendSingleMarketDataRequest44(
 void Application::onMessage(const FIX44::TradingSessionStatus& message,
                             const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("FIX44::TradingSessionStatus& message...)");
-  }
+  pan::log_DEBUG("FIX44::TradingSessionStatus& message...)");
 #endif
   trading_session_status_template<FIX44::TradingSessionStatus>(message,
       sessionID);
@@ -1522,19 +1447,15 @@ void Application::onMessage(const FIX44::TradingSessionStatus& message,
 void Application::onMessage(const FIX44::Logon& message,
                             const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("FIX44::Logon& message, ...)");
-  }
+  pan::log_DEBUG("FIX44::Logon& message, ...)");
 #endif
 }
 
 void Application::onMessage(const FIX44::MarketDataSnapshotFullRefresh& message,
                             const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("FIX44::MarketDataSnapshotFullRefresh& message, ...)",
-                   "\n(", message.toString().c_str(), ")");
-  }
+  pan::log_DEBUG("FIX44::MarketDataSnapshotFullRefresh& message, ...)",
+                 "\n(", message.toString().c_str(), ")");
 #endif
   this->full_refresh_template<FIX44::MarketDataSnapshotFullRefresh>(message,
       sessionID);
@@ -1543,10 +1464,8 @@ void Application::onMessage(const FIX44::MarketDataSnapshotFullRefresh& message,
 void Application::onMessage(const FIX44::MarketDataIncrementalRefresh& message,
   const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("FIX44::MarketDataIncrementalRefresh& message, ...)\n",
-                   message.toString().c_str());
-  }
+  pan::log_DEBUG("FIX44::MarketDataIncrementalRefresh& message, ...)\n",
+                 message.toString().c_str());
 #endif
   this->incremental_update_template<FIX44::MarketDataIncrementalRefresh>(
     message, sessionID);
@@ -1555,18 +1474,14 @@ void Application::onMessage(const FIX44::MarketDataIncrementalRefresh& message,
 void Application::onMessage(const FIX44::MarketDataRequestReject& message,
   const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("FIX44::MarketDataRequestReject& message, ...)\n",
-                   message.toString().c_str());
-  }
+  pan::log_DEBUG("FIX44::MarketDataRequestReject& message, ...)\n",
+                 message.toString().c_str());
 #endif
 }
 
 FIX44::TestRequest Application::sendTestRequest44() {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("Application::sendTestRequest44()");
-  }
+  pan::log_DEBUG("Application::sendTestRequest44()");
 #endif
   FIX44::TestRequest tr;
   FIX::TestReqID trid("TestRequest");
@@ -1583,9 +1498,7 @@ FIX44::TestRequest Application::sendTestRequest44() {
 FIX50::MarketDataRequest Application::sendMarketDataRequest50(
   const std::vector<std::string>& symbols) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("sendMarketDataRequest50(...)");
-  }
+  pan::log_DEBUG("sendMarketDataRequest50(...)");
 #endif
 
   FIX::MDReqID mdReqID("CAPK");
@@ -1634,11 +1547,9 @@ FIX50::MarketDataRequest Application::sendMarketDataRequest50(
 FIX50::MarketDataRequest Application::sendSingleMarketDataRequest50(
   const std::string& requestSymbol) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("sendSingleMarketDataRequest50(",
-                   requestSymbol.c_str(),
-                   ")");
-  }
+  pan::log_DEBUG("sendSingleMarketDataRequest50(",
+                 requestSymbol.c_str(),
+                 ")");
 #endif
   std::string reqID("CAPK-");
   reqID += requestSymbol;
@@ -1684,10 +1595,8 @@ FIX50::MarketDataRequest Application::sendSingleMarketDataRequest50(
 void Application::onMessage(const FIX50::MarketDataSnapshotFullRefresh& message,
                             const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("FIX50::MarketDataSnapshotFullRefresh& message, ...)",
-                   "\n(", message.toString().c_str(), ")");
-  }
+  pan::log_DEBUG("FIX50::MarketDataSnapshotFullRefresh& message, ...)",
+                 "\n(", message.toString().c_str(), ")");
 #endif
   this->full_refresh_template<FIX50::MarketDataSnapshotFullRefresh>(message,
       sessionID);
@@ -1696,10 +1605,8 @@ void Application::onMessage(const FIX50::MarketDataSnapshotFullRefresh& message,
 void Application::onMessage(const FIX50::MarketDataIncrementalRefresh& message,
   const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("FIX50::MarketDataIncrementalRefresh& message, ...)\n",
-                   message.toString().c_str());
-  }
+  pan::log_DEBUG("FIX50::MarketDataIncrementalRefresh& message, ...)\n",
+                 message.toString().c_str());
 #endif
   this->incremental_update_template<FIX50::MarketDataIncrementalRefresh>(
     message, sessionID);
@@ -1715,9 +1622,7 @@ void Application::onMessage(const FIX50::MarketDataIncrementalRefresh& message,
 FIX50SP2::MarketDataRequest Application::sendMarketDataRequest50SP2(
   const std::vector<std::string>& symbols) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("sendMarketDataRequest50SP2(...)");
-  }
+  pan::log_DEBUG("sendMarketDataRequest50SP2(...)");
 #endif
 
   FIX::MDReqID mdReqID("CAPK");
@@ -1766,11 +1671,9 @@ FIX50SP2::MarketDataRequest Application::sendMarketDataRequest50SP2(
 FIX50SP2::MarketDataRequest Application::sendSingleMarketDataRequest50SP2(
   const std::string& requestSymbol) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("sendSingleMarketDataRequest50SP2(",
-                   requestSymbol.c_str(),
-                   ")");
-  }
+  pan::log_DEBUG("sendSingleMarketDataRequest50SP2(",
+                 requestSymbol.c_str(),
+                 ")");
 #endif
   std::string reqID("CAPK-");
   reqID += requestSymbol;
@@ -1816,10 +1719,8 @@ FIX50SP2::MarketDataRequest Application::sendSingleMarketDataRequest50SP2(
 void Application::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& message,
                             const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("FIX50SP2::MarketDataSnapshotFullRefresh& message, ...)",
-                   "\n(", message.toString().c_str(), ")");
-  }
+  pan::log_DEBUG("FIX50SP2::MarketDataSnapshotFullRefresh& message, ...)",
+                 "\n(", message.toString().c_str(), ")");
 #endif
   this->full_refresh_template<FIX50SP2::MarketDataSnapshotFullRefresh>(message,
       sessionID);
@@ -1828,10 +1729,8 @@ void Application::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& messa
 void Application::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message,
   const FIX::SessionID& sessionID) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("FIX50SP2::MarketDataIncrementalRefresh& message, ...)\n",
-                   message.toString().c_str());
-  }
+  pan::log_DEBUG("FIX50SP2::MarketDataIncrementalRefresh& message, ...)\n",
+                 message.toString().c_str());
 #endif
   this->incremental_update_template<FIX50SP2::MarketDataIncrementalRefresh>(
     message, sessionID);
@@ -1845,9 +1744,7 @@ void Application::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messag
 #ifdef USE_FIXT11
 FIXT11::TestRequest Application::sendTestRequestFIXT11() {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("Application::sendTestRequestFIXT11()");
-  }
+  pan::log_DEBUG("Application::sendTestRequestFIXT11()");
 #endif
   FIXT11::TestRequest tr;
   FIX::TestReqID trid("TestRequest");
@@ -1857,9 +1754,7 @@ FIXT11::TestRequest Application::sendTestRequestFIXT11() {
 
 void Application::onMessage(const FIXT11::Logon&, const FIX::SessionID&) {
 #ifdef LOG
-  if (_config.print_debug) {
-    pan::log_DEBUG("RCV FIXT11::Logon& message");
-  }
+  pan::log_DEBUG("RCV FIXT11::Logon& message");
 #endif
 }
 #endif 
