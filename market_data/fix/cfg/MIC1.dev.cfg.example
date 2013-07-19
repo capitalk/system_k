@@ -1,0 +1,86 @@
+###############################################################################
+# Note that market data connectivity only supports ONE SESSION per process.
+# Only put one complete configuration in this file. To connect to more than 
+# one venue run more than one process. 
+###############################################################################
+# For complete documentation on how configuration works see the 
+# quickfix website here: 
+# http://www.quickfixengine.org/quickfix/doc/html/configuration.html
+[DEFAULT]
+ConnectionType=initiator
+ReconnectInterval=60
+# Where to store QFIX sequence files
+FileStorePath=store
+# Where to store QFIX log files
+FileLogPath=log
+StartTime=00:00:00
+EndTime=00:00:00
+UseDataDictionary=Y
+DataDictionary=./spec/FIX42.xml
+SocketNoDelay=Y
+LogonTimeout=2
+LogoutTimeout=2
+
+[SESSION]
+# Inherit ConnectionType, ReconnectInterval and SenderCompID from default
+BeginString=FIX.4.2
+SenderCompID=XXXX
+TargetCompID=XXXX
+SocketConnectHost=XXXX
+SocketConnectPort=XXXX
+HeartBtInt=30
+PersistMessages=N
+
+###############################################################################
+# Fields below this point are specific to System K Configuration
+# They are read using the Quickfix dictionary mechanism used to read 
+# the standard FIX parameters referenced in the link above. 
+
+# If present username is sent in FIX field 553
+Username=hello
+
+# If present password is sent in FIX field 554 
+Password=fxcm1234
+
+# Some venues use FIX field 96 to send password
+# If that's the case set to 'Y'
+SendPasswordInRawData=N
+
+# The MIC code of the venue. Append .dev if it is UAT environment.
+# ISO MIC codes can be found here http://www.iso15022.org/MIC/homepageMIC.htm
+MIC=MIC1dev
+
+# FIX field 266 
+AggregatedBook=Y
+
+# FIX tag 141 - reset sequence numbers on logon
+ResetSeqNo=Y
+
+# Send more than one security in MarketDataRequest (35=V)
+# Some venues don't allow more than one Symbol in repeating group 146 
+SendIndividualMarketDataRequests=Y
+
+# FIX tag 264 
+MarketDepth=0
+
+# FIX tag 265 - type of market data to request. 
+# 0 = full refresh
+# 1 = incremental refresh
+MDUpdateType=1
+
+# New orders should replace existing orders with same MDEntryID
+NewReplaces=Y
+
+# The FIX version to use
+# Valid values are:
+# 42 = FIX 4.2
+# 43 = FIX 4.3
+# 44 = FIX 4.4
+# 50 = FIX 5.0
+# 52 = FIX 5.0SP2
+FIXVersion=42
+
+# Set to Y to publish on ZeroMQ PUBSUB socket 
+# Note that binding address is set either from configuration server or local venue
+# initialization file specified on command line
+PublishPrices=Y
