@@ -9,11 +9,24 @@ endif
 
 all: libcsoft.a
 
-%.o : %.c
-	$(CC) -c $(CFLAGS) $<
+TARGET  = libcsoft.a
+SOURCES = $(wildcard ./*.c)
+OBJECTS = $(SOURCES:.c=.o)
 
-libcsoft.a: $(OBJS) 
-	ar rcs $@ $+
+.SUFFIXES : .c
+
+%.o : %.c
+	$(CC) -c $(CFLAGS) $(SOURCES)
+
+all: $(TARGET)
+
+#$(TARGET): $(OBJECTS)
+#$(CC) $(FLAGS) $(CFLAGS) $(DEBUGFLAGS) -o $(TARGET) $(OBJECTS)
+
+
+$(TARGET) : $(OBJECTS) 
+	ar rcs $@ $(OBJECTS)
+	@echo $(OBJECTS)
 
 clean :
 	rm -f *.o libcsoft.a
